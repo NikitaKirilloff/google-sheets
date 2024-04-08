@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+
+<h2>Google Table Analogue</h2>
+
+<body>
+<table border="1">
+    <tbody>
+    <tr>
+        <th width="46px" height="24px"></th> <!-- Пустая ячейка в левом верхнем углу -->
+        <th width="46px" height="24px"
+            th:each="col : ${#numbers.sequence(0, 3)}"
+            th:text="${#strings.toUpperCase(#strings.substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', col, col+1))}"></th>
+    </tr>
+    <tr th:each="row, rowStat : ${cells}">
+        <td align="center" th:text="${rowStat.index + 1}"></td>
+        <td align="center"
+            th:each="cell, colStat : ${row}">
+            <form method="post" th:action="@{'/update?rowTable=' + ${rowStat.index} + '&colTable=' + ${colStat.index}}">
+                <input type="text" th:value="${cell.getValue()}" name="valueTable"
+                       onblur="this.form.submit()">
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
