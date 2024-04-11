@@ -3,8 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+    <style>
+        table {
+            border-collapse: collapse;
+            max-width: 450px;
+            max-height: 120px;
+            overflow: hidden;
+        }
 
+        th, td {
+            padding: 1px;
+            text-align: center;
+        }
+
+        th {
+            width: 100px;
+            height: 24px;
+        }
+
+        td {
+            width: 50px;
+            height: 24px;
+        }
+
+        th:first-child,
+        td:first-child {
+            background-color: #cfe2f3; /*  left cell  */
+            color: black;
+        }
+
+        th:not(:first-child),
+        td:not(:first-child) {
+            max-width: 100px;
+        }
+
+        tr:first-child th {
+            background-color: #cfe2f3; /*  top cell  */
+            color: black;
+        }
+
+        td input {
+            max-width: calc(100% - 4px);
+            max-height: 100%;
+            box-sizing: border-box;
+            padding: 2px;
+        }
+    </style>
+</head>
 
 <h2>Google Table Analogue</h2>
 
@@ -12,18 +57,16 @@
 <table border="1">
     <tbody>
     <tr>
-        <th width="46px" height="24px"></th> <!-- Пустая ячейка в левом верхнем углу -->
-        <th width="46px" height="24px"
-            th:each="col : ${#numbers.sequence(0, 3)}"
+        <th></th>
+        <th th:each="col : ${#numbers.sequence(0, 3)}"
             th:text="${#strings.toUpperCase(#strings.substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', col, col+1))}"></th>
     </tr>
-    <tr th:each="row, rowStat : ${cells}">
-        <td align="center" th:text="${rowStat.index + 1}"></td>
-        <td align="center"
-            th:each="cell, colStat : ${row}">
+    <tr th:each="row, rowStat : ${cells}" >
+        <td th:text="${rowStat.index + 1}"></td>
+        <td th:each="cell, colStat : ${row}" >
             <form method="post" th:action="@{'/update?rowTable=' + ${rowStat.index} + '&colTable=' + ${colStat.index}}">
-                <input type="text" th:value="${cell.getValue()}" name="valueTable"
-                       onblur="this.form.submit()">
+                <input type="text" th:value="${cell.getValue()}" name="valueTable" style="text-align: right"
+                       onblur="this.form.submit()" >
             </form>
         </td>
     </tr>

@@ -3,6 +3,7 @@ package startApplication.model;
 import lombok.Getter;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Stack;
 
 @Repository
@@ -29,96 +30,104 @@ public class Spreadsheet {
     }
   }
 
-  public String addAttribute(int row, int col, String attributeValue) {
-    cells[row][col].setValue(attributeValue);
-    return attributeValue;
-    /*int value = 0;
-    if (attributeValue.startsWith("=")) {
-      try {
-        value = calc(attributeValue.substring(1));
-        //cells.get(Integer.parseInt(String.valueOf(row))).get(Integer.parseInt(String.valueOf(col))).setValue(String.valueOf(Double.valueOf(String.valueOf(value))));
-      } catch (Exception e) {
-        return -1;
-      }
-    } else if (attributeValue.length() == 1) {
-      try {
-        value = Integer.parseInt(attributeValue);
-        //cells.get(Integer.parseInt(String.valueOf(row))).get(Integer.parseInt(String.valueOf(col))).setValue(String.valueOf(Double.valueOf(String.valueOf(value))));
-      } catch (NumberFormatException e) {
-        return -1;
-      }
-    } else {
-      return -1;
+  public void addAttribute(int row, int col, String attributeValue) {
+    if (attributeValue.startsWith("=") && attributeValue.matches("^=[()+\\-*/a-zA-Z0-9]+")) {
+      attributeValue = replaceCellLink(attributeValue.substring(1).toLowerCase());
     }
-    return value;*/
+    if (!attributeValue.isEmpty() && attributeValue.matches("[()+\\-*/0-9.]+")) {
+      String result = String.valueOf(calc(attributeValue));
+      cells[row][col].setValue(result);
+    } else if (!attributeValue.isEmpty()) {
+      cells[row][col].setValue("#ERROR!");
+    }
   }
 
-  private static int calc(String expression) {
-    Stack<Integer> numbers = new Stack<>();
+  private String replaceCellLink(String attributeValue) {
+    String[] array = attributeValue.split("[+\\-*/()]");
+    String regex = "^[a-d][1-4]$";
+
+    for (String element : array) {
+      if (element.matches(regex)) {
+        attributeValue = attributeValue.replace(element, findElementOnArray(element));
+      }
+    }
+
+    return attributeValue;
+  }
+
+  private String findElementOnArray(String element) {
+    if (!cells[element.charAt(1) - 49][element.charAt(0) - 'a'].getValue().isBlank()) {
+      return cells[element.charAt(1) - 49][element.charAt(0) - 'a'].getValue();
+    }
+    return element;
+  }
+
+  public static BigDecimal calc(String expression) {
+    Stack<BigDecimal> numbers = new Stack<>();
     Stack<Character> operators = new Stack<>();
 
     for (int i = 0; i < expression.length(); i++) {
       char c = expression.charAt(i);
-      if (Character.isDigit(c)) {
-        int num = 0;
-        while (i < expression.length() && Character.isDigit(expression.charAt(i))) {
-          num = num * 10 + (expression.charAt(i) - '0');
+      if (Character.isDigit(c) || c == '.') {
+        StringBuilder numStr = new StringBuilder();
+        while (i < expression.length() && (Character.isDigit(expression.charAt(i)) || expression.charAt(i) == '.')) {
+          numStr.append(expression.charAt(i));
           i++;
         }
         i--;
-        numbers.push(num);
+        numbers.push(new BigDecimal(numStr.toString()));
       } else if (c == '(') {
         operators.push(c);
       } else if (c == ')') {
         while (operators.peek() != '(') {
-          int result = executeOp(numbers, operators);
+          BigDecimal result = executeOp(numbers, operators);
           numbers.push(result);
         }
         operators.pop();
       } else if (checkOp(c)) {
         while (!operators.isEmpty() && getOp(operators.peek()) >= getOp(c)) {
-          int result = executeOp(numbers, operators);
+          BigDecimal result = executeOp(numbers, operators);
           numbers.push(result);
         }
         operators.push(c);
       }
     }
     while (!operators.isEmpty()) {
-      int result = executeOp(numbers, operators);
+      BigDecimal result = executeOp(numbers, operators);
       numbers.push(result);
     }
     return numbers.pop();
   }
 
-  private static int executeOp(Stack<Integer> numbers, Stack<Character> operators) {
-    int operand2 = numbers.pop();
-    int operand1 = numbers.pop();
+  public static BigDecimal executeOp(Stack<BigDecimal> numbers, Stack<Character> operators) {
+    BigDecimal operand2 = numbers.pop();
+    BigDecimal operand1 = numbers.pop();
     char operator = operators.pop();
-    int result = 0;
+    BigDecimal result = BigDecimal.ZERO;
 
     switch (operator) {
       case '+':
-        result = operand1 + operand2;
+        result = operand1.add(operand2);
         break;
       case '-':
-        result = operand1 - operand2;
+        result = operand1.subtract(operand2);
         break;
       case '*':
-        result = operand1 * operand2;
+        result = operand1.multiply(operand2);
         break;
       case '/':
-        result = operand1 / operand2;
+        result = operand1.divide(operand2, BigDecimal.ROUND_HALF_UP);
         break;
     }
 
     return result;
   }
 
-  private static boolean checkOp(char c) {
+  public static boolean checkOp(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/');
   }
 
-  private static int getOp(char operator) {
+  public static int getOp(char operator) {
     switch (operator) {
       case '+':
       case '-':

@@ -22,6 +22,9 @@ public class CellController {
 
   @PostMapping("/update")
   public String updateCellValue(@RequestParam("rowTable") int rowTable, @RequestParam("colTable") int colTable, @RequestParam("valueTable") String valueTable) {
+    if (valueTable == null || valueTable.isEmpty()) {
+      return "redirect:/cells";
+    }
     spreadsheet.addAttribute(rowTable, colTable, valueTable);
     return "redirect:/cells";
   }
