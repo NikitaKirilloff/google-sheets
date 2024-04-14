@@ -57,7 +57,7 @@
 <table border="1">
     <tbody>
     <tr>
-        <th></th>
+        <th></th> <!-- Пустая в левом верхнем углу -->
         <th th:each="col : ${#numbers.sequence(0, 3)}"
             th:text="${#strings.toUpperCase(#strings.substring('ABCDEFGHIJKLMNOPQRSTUVWXYZ', col, col+1))}"></th>
     </tr>
@@ -65,8 +65,7 @@
         <td th:text="${rowStat.index + 1}"></td>
         <td th:each="cell, colStat : ${row}" >
             <form method="post" th:action="@{'/update?rowTable=' + ${rowStat.index} + '&colTable=' + ${colStat.index}}">
-                <input type="text" th:value="${cell.getValue()}" name="valueTable" style="text-align: right"
-                       onblur="this.form.submit()" >
+                <input type="text" th:value="${cell.getValue()}" name="expression" style="text-align: right" onblur="this.form.submit()" >
             </form>
         </td>
     </tr>

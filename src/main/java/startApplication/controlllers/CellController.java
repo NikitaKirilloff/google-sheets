@@ -6,26 +6,26 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import startApplication.model.Spreadsheet;
+import startApplication.service.SpreadsheetService;
 
 @RequiredArgsConstructor
 @Controller
 public class CellController {
 
-  Spreadsheet spreadsheet = new Spreadsheet();
+  private final SpreadsheetService spreadsheetService;
 
   @GetMapping("/cells")
   public String spreadsheet(Model model) {
-    model.addAttribute("cells", spreadsheet.getCells());
+    model.addAttribute("cells", spreadsheetService.getCells());
     return "spreadsheet";
   }
 
   @PostMapping("/update")
-  public String updateCellValue(@RequestParam("rowTable") int rowTable, @RequestParam("colTable") int colTable, @RequestParam("valueTable") String valueTable) {
-    if (valueTable == null || valueTable.isEmpty()) {
+  public String updateCellValue(@RequestParam("rowTable") int rowTable, @RequestParam("colTable") int colTable, @RequestParam("expression") String expression) {
+    if (expression == null || expression.isEmpty()) {
       return "redirect:/cells";
     }
-    spreadsheet.addAttribute(rowTable, colTable, valueTable);
+    spreadsheetService.calcExpression(rowTable, colTable, expression);
     return "redirect:/cells";
   }
 }
